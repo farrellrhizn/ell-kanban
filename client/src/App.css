@@ -387,25 +387,9 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.task-input {
-  flex: 1;
-  background-color: var(--background);
-  border: 1px solid var(--input);
-  border-radius: calc(var(--radius) - 2px);
-  padding: 0.625rem 0.875rem;
+.task-form .task-input {
   font-size: 0.875rem;
-  color: var(--foreground);
-  transition: all 0.2s ease;
-}
-
-.task-input::placeholder {
-  color: var(--muted-foreground);
-}
-
-.task-input:focus {
-  outline: none;
-  border-color: var(--ring);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  padding: 0.625rem 0.875rem;
 }
 
 .modal-dialog {
@@ -413,70 +397,172 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  max-width: 500px;
+  max-width: 560px;
   width: calc(100% - 2rem);
-  max-height: 90vh;
+  max-height: 85vh;
   padding: 0;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 8px);
   background-color: var(--card);
   color: var(--card-foreground);
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   z-index: 1000;
 }
 
 .modal-dialog::backdrop {
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
 }
 
 .modal-content {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem;
+  padding: 1.5rem 1.75rem;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .modal-title {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 600;
   color: var(--foreground);
+  line-height: 1.4;
 }
 
 .modal-close {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   line-height: 1;
+  margin: -0.5rem;
 }
 
 .modal-body {
-  padding: 1.5rem;
+  padding: 1.75rem;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 }
 
 .modal-footer {
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.75rem;
   border-top: 1px solid var(--border);
   background-color: var(--muted);
+  flex-shrink: 0;
 }
 
 .space-y-4 > * + * {
-  margin-top: 1rem;
+  margin-top: 1.25rem;
 }
 
 .form-label {
   display: block;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--foreground);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.625rem;
+  letter-spacing: -0.01em;
+}
+
+.form-label:not(:first-child) {
+  margin-top: 0.25rem;
+}
+
+.form-label::after {
+  content: '';
+}
+
+.form-label[for] {
+  cursor: pointer;
+}
+
+.task-input {
+  flex: 1;
+  background-color: var(--background);
+  border: 1.5px solid var(--input);
+  border-radius: calc(var(--radius) - 2px);
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  color: var(--foreground);
+  transition: all 0.2s ease;
+  width: 100%;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.task-input::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.7;
+}
+
+.task-input:focus {
+  outline: none;
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+  background-color: var(--card);
+}
+
+.task-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+textarea.task-input {
+  min-height: 120px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+/* Form dalam modal */
+.modal-body form {
+  width: 100%;
+}
+
+.modal-body form > div {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-body .task-input {
+  display: block;
+}
+
+.modal-body input[type="text"],
+.modal-body input[type="email"],
+.modal-body input[type="password"],
+.modal-body textarea {
+  width: 100%;
+}
+
+/* Responsive Modal */
+@media (max-width: 640px) {
+  .modal-dialog {
+    max-width: calc(100% - 1rem);
+    max-height: 90vh;
+  }
+  
+  .modal-header {
+    padding: 1.25rem 1.5rem;
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+  }
+  
+  .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .modal-footer {
+    padding: 1rem 1.5rem;
+  }
 }
 
 .status-message {
@@ -531,4 +617,26 @@ body {
 
 .whitespace-nowrap {
   white-space: nowrap;
+}
+
+/* Modal Footer Buttons */
+.modal-footer .flex {
+  width: 100%;
+}
+
+.modal-footer button {
+  min-width: 100px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .modal-footer .flex {
+    flex-direction: column-reverse;
+  }
+  
+  .modal-footer button {
+    width: 100%;
+  }
 }

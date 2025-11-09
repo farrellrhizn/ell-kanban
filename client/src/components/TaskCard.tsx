@@ -26,7 +26,7 @@ const TaskCard = ({ task, onDelete, onUpdate }: TaskCardProps): JSX.Element => {
     transform,
     transition,
     isDragging
-  } = useSortable({ id: task.id });
+  } = useSortable({ id: `task-${task.id}` });
 
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),

@@ -8,7 +8,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     <textarea
       ref={ref}
       className={cn('task-input', className)}
-      style={{ minHeight: '100px', resize: 'vertical', ...style }}
+      style={{ minHeight: '120px', resize: 'vertical', ...style }}
       {...props}
     />
   )

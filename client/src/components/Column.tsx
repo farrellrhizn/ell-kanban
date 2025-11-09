@@ -23,10 +23,10 @@ const Column = ({ column, onCreateTask, onDeleteTask, onUpdateTask }: ColumnProp
   const [newTaskDescription, setNewTaskDescription] = useState('');
 
   const { setNodeRef } = useDroppable({
-    id: column.id,
+    id: `column-${column.id}`,
   });
 
-  const taskIds = column.tasks.map((task) => task.id);
+  const taskIds = column.tasks.map((task) => `task-${task.id}`);
 
   const handleQuickSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

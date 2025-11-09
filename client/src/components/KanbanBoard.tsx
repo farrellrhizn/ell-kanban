@@ -7,7 +7,8 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-  type DragStartEvent
+  type DragStartEvent,
+  type UniqueIdentifier
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { useState } from 'react';
@@ -15,6 +16,32 @@ import Column from './Column';
 import TaskCard from './TaskCard';
 import type { ColumnWithTasks, Task } from '../types/kanban';
 import type { CreateTaskPayload, UpdateTaskPayload } from '../api/kanban';
+
+const parseTaskId = (id: UniqueIdentifier): number | null => {
+  if (typeof id === 'number') return id;
+  if (typeof id === 'string') {
+    if (id.startsWith('task-')) {
+      const parsed = Number(id.replace('task-', ''));
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+    const parsed = Number(id);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  return null;
+};
+
+const parseColumnId = (id: UniqueIdentifier): number | null => {
+  if (typeof id === 'number') return id;
+  if (typeof id === 'string') {
+    if (id.startsWith('column-')) {
+      const parsed = Number(id.replace('column-', ''));
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+    const parsed = Number(id);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  return null;
+};
 
 interface KanbanBoardProps {
   columns: ColumnWithTasks[];
@@ -31,7 +58,7 @@ const KanbanBoard = ({
   onUpdateTask,
   onMoveTask
 }: KanbanBoardProps): JSX.Element => {
-  const [activeId, setActiveId] = useState<number | null>(null);
+  const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -45,75 +72,75 @@ const KanbanBoard = ({
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    const identifier = Number(event.active.id);
-    setActiveId(Number.isNaN(identifier) ? null : identifier);
+    const taskId = parseTaskId(event.active.id);
+    setActiveTaskId(taskId);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     
     if (!over) {
-      setActiveId(null);
+      setActiveTaskId(null);
       return;
     }
 
-    const activeIdNumber = Number(active.id);
-    const overIdNumber = Number(over.id);
+    const activeIdNumber = parseTaskId(active.id);
+    const overTaskId = parseTaskId(over.id);
+    const overColumnId = parseColumnId(over.id);
+
+    if (activeIdNumber === null) {
+      setActiveTaskId(null);
+      return;
+    }
 
     const activeTask = columns
       .flatMap((col) => col.tasks)
       .find((task) => task.id === activeIdNumber);
 
-    const overTask = columns
-      .flatMap((col) => col.tasks)
-      .find((task) => task.id === overIdNumber);
-
-    const overColumn = columns.find((col) => col.id === overIdNumber);
-
     if (!activeTask) {
-      setActiveId(null);
+      setActiveTaskId(null);
       return;
     }
 
     // Moving to a different column
-    if (overColumn) {
-      await onMoveTask(activeTask.id, overColumn.id, 0);
+    if (overColumnId !== null) {
+      await onMoveTask(activeTask.id, overColumnId, 0);
     }
     // Moving within the same column or to another task's position
-    else if (overTask) {
+    else if (overTaskId !== null) {
       const activeColumn = columns.find((col) =>
         col.tasks.some((task) => task.id === activeIdNumber)
       );
       const targetColumn = columns.find((col) =>
-        col.tasks.some((task) => task.id === overIdNumber)
+        col.tasks.some((task) => task.id === overTaskId)
       );
 
       if (activeColumn && targetColumn) {
         if (activeColumn.id === targetColumn.id) {
           // Same column, reorder
           const oldIndex = activeColumn.tasks.findIndex((task) => task.id === activeIdNumber);
-          const newIndex = activeColumn.tasks.findIndex((task) => task.id === overIdNumber);
+          const newIndex = activeColumn.tasks.findIndex((task) => task.id === overTaskId);
           
           if (oldIndex !== newIndex) {
             await onMoveTask(activeTask.id, targetColumn.id, newIndex);
           }
         } else {
           // Different column
-          const newIndex = targetColumn.tasks.findIndex((task) => task.id === overIdNumber);
+          const newIndex = targetColumn.tasks.findIndex((task) => task.id === overTaskId);
           await onMoveTask(activeTask.id, targetColumn.id, newIndex);
         }
       }
     }
 
-    setActiveId(null);
+    setActiveTaskId(null);
   };
 
   const handleDragCancel = () => {
-    setActiveId(null);
+    setActiveTaskId(null);
   };
 
-  const activeTask: Task | undefined = activeId
-    ? columns.flatMap((col) => col.tasks).find((task) => task.id === activeId)
+  const activeTask: Task | undefined = activeTaskId !== null
+    ? columns.flatMap((col) => col.tasks).find((task) => task.id === activeTaskId)
     : undefined;
 
   return (
