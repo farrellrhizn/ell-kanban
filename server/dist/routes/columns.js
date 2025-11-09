@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { query } from '../db.js';
+
+
 const router = Router();
 router.get('/', async (req, res) => {
     const boardIdParam = req.query.boardId;
@@ -25,6 +27,7 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: 'Gagal mengambil data kolom' });
     }
 });
+
 router.post('/', async (req, res) => {
     const { title, position, boardId = 1, wipLimit, color } = req.body;
     if (!title?.trim()) {
@@ -55,6 +58,7 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: 'Gagal membuat kolom' });
     }
 });
+
 router.patch('/:id', async (req, res) => {
     const { id } = req.params;
     const numericId = Number(id);

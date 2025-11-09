@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { query } from '../db.js';
+
 const router = Router();
 router.get('/', async (req, res) => {
     const boardIdParam = req.query.boardId;
@@ -31,6 +32,7 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: 'Gagal mengambil data task' });
     }
 });
+
 router.post('/', async (req, res) => {
     const { columnId, assigneeId, title, description, priority, status, dueDate, labels, metadata } = req.body;
     if (!columnId || !title?.trim()) {
@@ -94,6 +96,7 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: 'Gagal membuat task' });
     }
 });
+
 router.patch('/:id', async (req, res) => {
     const { id } = req.params;
     const numericId = Number(id);
