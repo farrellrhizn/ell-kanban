@@ -1,4 +1,4 @@
-import { type FormEvent, type MouseEvent, useState } from 'react';
+import { type FormEvent, type MouseEvent, useEffect, useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import TaskCard from './TaskCard';
@@ -14,9 +14,16 @@ interface ColumnProps {
   onCreateTask: (payload: CreateTaskPayload) => Promise<void>;
   onDeleteTask: (id: number) => Promise<void>;
   onUpdateTask: (id: number, payload: UpdateTaskPayload) => Promise<void>;
+  canManageTasks: boolean;
 }
 
-const Column = ({ column, onCreateTask, onDeleteTask, onUpdateTask }: ColumnProps): JSX.Element => {
+const Column = ({
+  column,
+  onCreateTask,
+  onDeleteTask,
+  onUpdateTask,
+  canManageTasks
+}: ColumnProps): JSX.Element => {
   const [title, setTitle] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -24,12 +31,14 @@ const Column = ({ column, onCreateTask, onDeleteTask, onUpdateTask }: ColumnProp
 
   const { setNodeRef } = useDroppable({
     id: `column-${column.id}`,
+    disabled: !canManageTasks
   });
 
   const taskIds = column.tasks.map((task) => `task-${task.id}`);
 
   const handleQuickSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!canManageTasks) return;
     if (!title.trim()) return;
     await onCreateTask({ columnId: column.id, title: title.trim() });
     setTitle('');
@@ -39,6 +48,7 @@ const Column = ({ column, onCreateTask, onDeleteTask, onUpdateTask }: ColumnProp
     e: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
+    if (!canManageTasks) return;
     if (!newTaskTitle.trim()) return;
     
     await onCreateTask({
@@ -53,10 +63,17 @@ const Column = ({ column, onCreateTask, onDeleteTask, onUpdateTask }: ColumnProp
   };
 
   const openAddModal = () => {
+    if (!canManageTasks) return;
     setNewTaskTitle('');
     setNewTaskDescription('');
     setIsAddModalOpen(true);
   };
+
+  useEffect(() => {
+    if (!canManageTasks && isAddModalOpen) {
+      setIsAddModalOpen(false);
+    }
+  }, [canManageTasks, isAddModalOpen]);
 
   return (
     <>
@@ -77,6 +94,7 @@ const Column = ({ column, onCreateTask, onDeleteTask, onUpdateTask }: ColumnProp
                 task={task}
                 onDelete={() => onDeleteTask(task.id)}
                 onUpdate={onUpdateTask}
+                canManageTasks={canManageTasks}
               />
             ))}
           </SortableContext>
@@ -90,8 +108,14 @@ const Column = ({ column, onCreateTask, onDeleteTask, onUpdateTask }: ColumnProp
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               className="task-input"
+              disabled={!canManageTasks}
             />
-            <Button type="submit" size="sm" className="whitespace-nowrap task-form__submit">
+            <Button
+              type="submit"
+              size="sm"
+              className="whitespace-nowrap task-form__submit"
+              disabled={!canManageTasks}
+            >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
@@ -102,12 +126,16 @@ const Column = ({ column, onCreateTask, onDeleteTask, onUpdateTask }: ColumnProp
             size="sm"
             onClick={openAddModal}
             style={{ width: '100%', marginTop: '0.5rem' }}
+            disabled={!canManageTasks}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Tambah dengan Detail
           </Button>
+          {!canManageTasks && (
+            <p className="task-form__hint">Login untuk membuat atau mengedit task.</p>
+          )}
         </div>
       </section>
 

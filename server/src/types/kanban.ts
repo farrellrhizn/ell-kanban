@@ -44,3 +44,16 @@ export interface TaskPayload {
   metadata?: Record<string, unknown>;
   position?: number;
 }
+
+export interface UserRecord {
+  id: number;
+  email: string;
+  displayName: string;
+  avatarUrl: string | null;
+  timezone: string | null;
+}
+
+export interface UserPayload {
+  email?: string;
+  displayName?: string;
+}

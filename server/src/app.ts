@@ -3,6 +3,7 @@ import cors from 'cors';
 
 import columnsRouter from './routes/columns.js';
 import tasksRouter from './routes/tasks.js';
+import authRouter from './routes/auth.js';
 
 const app: Application = express();
 
@@ -19,5 +20,6 @@ app.get('/health', (_req: Request, res: Response) => {
 
 app.use('/api/columns', columnsRouter);
 app.use('/api/tasks', tasksRouter);
+app.use('/api/auth', authRouter);
 
 export default app;

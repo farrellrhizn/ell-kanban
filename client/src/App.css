@@ -137,6 +137,57 @@ body {
   align-items: center;
 }
 
+.app-header__auth {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 280px;
+}
+
+.auth-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.auth-form input {
+  min-width: 180px;
+}
+
+.auth-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background-color: var(--muted);
+}
+
+.auth-status__info {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.auth-status__info span {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.auth-error {
+  color: var(--destructive);
+  font-size: 0.75rem;
+}
+
+.auth-hint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
 .board-container {
   flex: 1;
   padding: 2rem;
@@ -487,6 +538,13 @@ body {
 .task-form__submit svg {
   width: 1rem;
   height: 1rem;
+}
+
+.task-form__hint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  text-align: center;
+  margin-top: 0.5rem;
 }
 
 .modal-dialog {

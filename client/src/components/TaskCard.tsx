@@ -1,4 +1,4 @@
-import { type CSSProperties, type FormEvent, type MouseEvent, useState } from 'react';
+import { type CSSProperties, type FormEvent, type MouseEvent, useEffect, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Button from './ui/Button';
@@ -12,9 +12,10 @@ interface TaskCardProps {
   task: Task;
   onDelete: () => Promise<void> | void;
   onUpdate: (id: number, payload: UpdateTaskPayload) => Promise<void>;
+  canManageTasks: boolean;
 }
 
-const TaskCard = ({ task, onDelete, onUpdate }: TaskCardProps): JSX.Element => {
+const TaskCard = ({ task, onDelete, onUpdate, canManageTasks }: TaskCardProps): JSX.Element => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description || '');
@@ -26,7 +27,7 @@ const TaskCard = ({ task, onDelete, onUpdate }: TaskCardProps): JSX.Element => {
     transform,
     transition,
     isDragging
-  } = useSortable({ id: `task-${task.id}` });
+  } = useSortable({ id: `task-${task.id}`, disabled: !canManageTasks });
 
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -34,10 +35,17 @@ const TaskCard = ({ task, onDelete, onUpdate }: TaskCardProps): JSX.Element => {
     opacity: isDragging ? 0.5 : 1,
   };
 
+  useEffect(() => {
+    if (!canManageTasks && isEditModalOpen) {
+      setIsEditModalOpen(false);
+    }
+  }, [canManageTasks, isEditModalOpen]);
+
   const handleEditSubmit = async (
     e: FormEvent<HTMLFormElement> | MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
+    if (!canManageTasks) return;
     if (!editTitle.trim()) return;
 
     const sanitizedDescription = editDescription.trim();
@@ -50,6 +58,7 @@ const TaskCard = ({ task, onDelete, onUpdate }: TaskCardProps): JSX.Element => {
 
   const handleEditClick = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
+    if (!canManageTasks) return;
     setEditTitle(task.title);
     setEditDescription(task.description || '');
     setIsEditModalOpen(true);
@@ -57,6 +66,7 @@ const TaskCard = ({ task, onDelete, onUpdate }: TaskCardProps): JSX.Element => {
 
   const handleDeleteClick = async (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
+    if (!canManageTasks) return;
     if (window.confirm(`Hapus task "${task.title}"?`)) {
       await onDelete();
     }
@@ -80,6 +90,7 @@ const TaskCard = ({ task, onDelete, onUpdate }: TaskCardProps): JSX.Element => {
               onClick={handleEditClick}
               className="task-card__action-btn"
               aria-label={`Edit ${task.title}`}
+              disabled={!canManageTasks}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -90,6 +101,7 @@ const TaskCard = ({ task, onDelete, onUpdate }: TaskCardProps): JSX.Element => {
               onClick={handleDeleteClick}
               className="task-card__action-btn task-card__delete-btn"
               aria-label={`Hapus ${task.title}`}
+              disabled={!canManageTasks}
             >
               ×
             </button>

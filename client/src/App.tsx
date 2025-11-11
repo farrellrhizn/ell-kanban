@@ -1,19 +1,24 @@
 import './App.css';
-import { useEffect, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import KanbanBoard from './components/KanbanBoard';
 import Button from './components/ui/Button';
+import Input from './components/ui/Input';
 import { useKanbanData } from './hooks/useKanbanData';
+import { useAuth } from './hooks/useAuth';
 
 type ThemeMode = 'light' | 'dark';
 
 const App = (): JSX.Element => {
   const { data, loading, error, createTask, deleteTask, updateTask, reload } = useKanbanData();
+  const { user, authLoading: authPending, authError, login, logout, clearAuthError } = useAuth();
 
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
     if (typeof window === 'undefined') return 'dark';
     const saved = window.localStorage.getItem('ell-kanban-theme') as ThemeMode | null;
     return saved ?? 'dark';
   });
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginDisplayName, setLoginDisplayName] = useState('');
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -29,11 +34,54 @@ const App = (): JSX.Element => {
   };
 
   const handleMoveTask = async (taskId: number, newColumnId: number, newPosition: number) => {
+    if (!user) return;
     await updateTask(taskId, {
       columnId: newColumnId,
       position: newPosition
     });
   };
+
+  const handleCreateTaskWithAssignee = useCallback(
+    async (payload: Parameters<typeof createTask>[0]) => {
+      const finalPayload =
+        payload.assigneeId === undefined && user
+          ? { ...payload, assigneeId: user.id }
+          : payload;
+      await createTask(finalPayload);
+    },
+    [createTask, user]
+  );
+
+  const handleLoginSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!loginEmail.trim()) return;
+    try {
+      await login({
+        email: loginEmail.trim(),
+        displayName: loginDisplayName.trim() || undefined
+      });
+      setLoginEmail('');
+      setLoginDisplayName('');
+    } catch {
+      // Error already ditangani oleh useAuth
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  const handleEmailChange = (value: string) => {
+    if (authError) clearAuthError();
+    setLoginEmail(value);
+  };
+
+  const handleNameChange = (value: string) => {
+    if (authError) clearAuthError();
+    setLoginDisplayName(value);
+  };
+
+  const canManageTasks = Boolean(user);
 
   if (loading) {
     return (
@@ -71,15 +119,52 @@ const App = (): JSX.Element => {
             {themeMode === 'dark' ? '☀️ Mode Terang' : '🌙 Mode Gelap'}
           </Button>
         </div>
+        <div className="app-header__auth">
+          {user ? (
+            <div className="auth-status">
+              <div className="auth-status__info">
+                <strong>{user.displayName}</strong>
+                <span>{user.email}</span>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleLogout} disabled={authPending}>
+                Logout
+              </Button>
+            </div>
+          ) : (
+            <form className="auth-form" onSubmit={handleLoginSubmit}>
+              <Input
+                type="email"
+                placeholder="Email"
+                value={loginEmail}
+                onChange={(event) => handleEmailChange(event.target.value)}
+                required
+                disabled={authPending}
+              />
+              <Input
+                type="text"
+                placeholder="Nama tampilan (opsional)"
+                value={loginDisplayName}
+                onChange={(event) => handleNameChange(event.target.value)}
+                disabled={authPending}
+              />
+              <Button type="submit" size="sm" disabled={authPending}>
+                {authPending ? 'Memproses...' : 'Login'}
+              </Button>
+            </form>
+          )}
+          {authError && <p className="auth-error">{authError}</p>}
+          {!user && <p className="auth-hint">Masuk untuk menambah dan mengubah task.</p>}
+        </div>
       </header>
       
       <div className="board-container">
         <KanbanBoard
           columns={data}
-          onCreateTask={createTask}
+          onCreateTask={handleCreateTaskWithAssignee}
           onDeleteTask={deleteTask}
           onUpdateTask={updateTask}
           onMoveTask={handleMoveTask}
+          canManageTasks={canManageTasks}
         />
       </div>
     </div>

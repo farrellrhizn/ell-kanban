@@ -49,6 +49,7 @@ interface KanbanBoardProps {
   onDeleteTask: (id: number) => Promise<void>;
   onUpdateTask: (id: number, payload: UpdateTaskPayload) => Promise<void>;
   onMoveTask: (taskId: number, columnId: number, position: number) => Promise<void>;
+  canManageTasks: boolean;
 }
 
 const KanbanBoard = ({
@@ -56,7 +57,8 @@ const KanbanBoard = ({
   onCreateTask,
   onDeleteTask,
   onUpdateTask,
-  onMoveTask
+  onMoveTask,
+  canManageTasks
 }: KanbanBoardProps): JSX.Element => {
   const [activeTaskId, setActiveTaskId] = useState<number | null>(null);
 
@@ -72,11 +74,16 @@ const KanbanBoard = ({
   );
 
   const handleDragStart = (event: DragStartEvent) => {
+    if (!canManageTasks) return;
     const taskId = parseTaskId(event.active.id);
     setActiveTaskId(taskId);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
+    if (!canManageTasks) {
+      setActiveTaskId(null);
+      return;
+    }
     const { active, over } = event;
     
     if (!over) {
@@ -136,6 +143,7 @@ const KanbanBoard = ({
   };
 
   const handleDragCancel = () => {
+    if (!canManageTasks) return;
     setActiveTaskId(null);
   };
 
@@ -159,22 +167,25 @@ const KanbanBoard = ({
             onCreateTask={onCreateTask}
             onDeleteTask={onDeleteTask}
             onUpdateTask={onUpdateTask}
+            canManageTasks={canManageTasks}
           />
         ))}
       </div>
-      <DragOverlay>
-        {activeTask ? (
-          <div className="task-card task-card--dragging">
-            <div className="task-card__tape" />
-            <header className="task-card__header">
-              <h3 className="task-card__title">{activeTask.title}</h3>
-            </header>
-            {activeTask.description && (
-              <p className="task-card__description">{activeTask.description}</p>
-            )}
-          </div>
-        ) : null}
-      </DragOverlay>
+      {canManageTasks && (
+        <DragOverlay>
+          {activeTask ? (
+            <div className="task-card task-card--dragging">
+              <div className="task-card__tape" />
+              <header className="task-card__header">
+                <h3 className="task-card__title">{activeTask.title}</h3>
+              </header>
+              {activeTask.description && (
+                <p className="task-card__description">{activeTask.description}</p>
+              )}
+            </div>
+          ) : null}
+        </DragOverlay>
+      )}
     </DndContext>
   );
 };

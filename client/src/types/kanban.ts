@@ -27,3 +27,11 @@ export interface Column {
 export interface ColumnWithTasks extends Column {
   tasks: Task[];
 }
+
+export interface User {
+  id: number;
+  email: string;
+  displayName: string;
+  avatarUrl: string | null;
+  timezone: string | null;
+}
